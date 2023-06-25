@@ -8,23 +8,19 @@ const app = express();
 // middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// app.use('/api', api);
 app.use(express.static('public'));
 
 
 
 //routes
-app.get('/notes', (req, res) => {
-    res.sendFile(path.join(__dirname, './public/notes.html'));
-});
-
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, './public/index.html'));
 });
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, './public/index.html'));
+app.get('/notes', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/notes.html'));
 });
+
 
 //get note route
 app.get('/api/notes', (req, res) => {
@@ -34,8 +30,8 @@ app.get('/api/notes', (req, res) => {
             res.status(500).json({ error: 'Failed to get notes' });
         }
         else {
-            const newnote = JSON.parse(data);
-            return res.json(newnote);
+            const newNote = JSON.parse(data);
+            return res.json(newNote);
         }
     });
 });
@@ -52,8 +48,19 @@ app.post('/api/notes', (req, res) => {
             console.log(err)
         }
         else {
-            res.json(note);
-        }
+            const newnote = JSON.parse(data);
+            newnote.push(note);
+        
+            fs.writeFile('./db/db.json', JSON.stringify(newnote), (err) => {
+                if (err) {
+                    console.log(err)
+                }
+                else {
+                    console.log('note added');
+                    res.json(newnote);
+                }
+            });
+        };
     });
 });
 
@@ -81,12 +88,13 @@ app.delete('/api/notes/:id', (req, res) => {
                     res.json(filterNote);
                 }
             });
-
         }
     });
 });
 
-
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/index.html'));
+});
 
 // listening
 app.listen(PORT, () => {
